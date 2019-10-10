@@ -8,13 +8,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     default-jre \
     golang-go \
-    python \
+    python-dev \
     python-pip \
     python-setuptools \
-    wget \
-    && \
-  apt-get clean && \
-  rm -rf /var/lib/apt/lists/*
+    wget
+#   && \
+#  apt-get clean && \
+#  rm -rf /var/lib/apt/lists/*
 
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$JAVA_HOME/lib/server
@@ -30,14 +30,22 @@ RUN sh -c 'echo export CLASSPATH=$CLASSPATH:$(hadoop classpath --glob) >> /etc/b
 
 RUN mkdir -p /root/.pip
 COPY tools/docker/pip.conf /root/.pip
-RUN pip --no-cache-dir install tensorflow
+RUN pip --no-cache-dir install numpy==1.16.4 tensorflow==1.14.0 setuptools
+
+RUN apt-get install unzip git curl vim -y  && \
+    cd /usr/local/lib/python2.7/dist-packages/tensorflow && ln -s libtensorflow_framework.so.1 libtensorflow_framework.so
 
 COPY . /tmp/Euler
+RUN mv -f /tmp/Euler/gflags /tmp/ && cd /tmp/gflags && mv -f build2 build && cd build && make && make install
 RUN cd /tmp/Euler/third_party/zookeeper && \
     ((cd zookeeper-client/zookeeper-client-c; \
       [ -e generated/zookeeper.jute.h ] && [ -e generated/zookeeper.jute.c ]) || \
-     ant compile_jute) && \
-    cd /tmp/Euler && \
+     ant compile_jute)
+
+#in docker, must build glfags below:
+#cd /tmp/build && ccmake .. && make && make install
+
+RUN cd /tmp/Euler && \
     mkdir -p /tmp/build && cd /tmp/build && \
     cmake /tmp/Euler && \
     make -j $(expr $(nproc) \* 2) && \
