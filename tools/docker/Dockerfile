@@ -36,7 +36,7 @@ RUN apt-get install unzip git curl vim -y
 #  && cd /usr/local/lib/python2.7/dist-packages/tensorflow && rm -rf libtensorflow_framework.so && ln -s libtensorflow_framework.so.1 libtensorflow_framework.so
 
 COPY . /tmp/Euler
-RUN mv -f /tmp/Euler/gflags /tmp && cd /tmp/gflags && mv -f build2 build && cd build && mkdir -p CMakeFiles/gflags_shared.dir/src/ && make && make install
+RUN mv -f /tmp/Euler/gflags /tmp && cd /tmp/gflags && mv -f build2 build && cd build && mkdir -p CMakeFiles/gflags_shared.dir/src/ && mkdir lib && make && make install
 RUN cd /tmp/Euler/third_party/zookeeper && \
     ((cd zookeeper-client/zookeeper-client-c; \
       [ -e generated/zookeeper.jute.h ] && [ -e generated/zookeeper.jute.c ]) || \
