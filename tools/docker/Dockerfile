@@ -32,8 +32,8 @@ RUN mkdir -p /root/.pip
 COPY tools/docker/pip.conf /root/.pip
 RUN pip --no-cache-dir install numpy==1.16.4 tensorflow==1.12.3 setuptools
 
-RUN apt-get install unzip git curl vim -y  && \
-    cd /usr/local/lib/python2.7/dist-packages/tensorflow && rm -rf libtensorflow_framework.so && ln -s libtensorflow_framework.so.1 libtensorflow_framework.so
+RUN apt-get install unzip git curl vim -y
+#  && cd /usr/local/lib/python2.7/dist-packages/tensorflow && rm -rf libtensorflow_framework.so && ln -s libtensorflow_framework.so.1 libtensorflow_framework.so
 
 COPY . /tmp/Euler
 RUN mv -f /tmp/Euler/gflags /tmp && cd /tmp/gflags && mv -f build2 build && cd build && make && make install
