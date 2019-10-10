@@ -30,13 +30,13 @@ RUN sh -c 'echo export CLASSPATH=$CLASSPATH:$(hadoop classpath --glob) >> /etc/b
 
 RUN mkdir -p /root/.pip
 COPY tools/docker/pip.conf /root/.pip
-RUN pip --no-cache-dir install numpy==1.16.4 tensorflow==1.14.0 setuptools
+RUN pip --no-cache-dir install numpy==1.16.4 tensorflow==1.12.3 setuptools
 
 RUN apt-get install unzip git curl vim -y  && \
-    cd /usr/local/lib/python2.7/dist-packages/tensorflow && ln -s libtensorflow_framework.so.1 libtensorflow_framework.so
+    cd /usr/local/lib/python2.7/dist-packages/tensorflow && rm -rf libtensorflow_framework.so && ln -s libtensorflow_framework.so.1 libtensorflow_framework.so
 
 COPY . /tmp/Euler
-RUN mv -f /tmp/Euler/gflags /tmp/ && cd /tmp/gflags && mv -f build2 build && cd build && make && make install
+RUN mv -f /tmp/Euler/gflags /tmp && cd /tmp/gflags && mv -f build2 build && cd build && make && make install
 RUN cd /tmp/Euler/third_party/zookeeper && \
     ((cd zookeeper-client/zookeeper-client-c; \
       [ -e generated/zookeeper.jute.h ] && [ -e generated/zookeeper.jute.c ]) || \
@@ -50,5 +50,9 @@ RUN cd /tmp/Euler && \
     cmake /tmp/Euler && \
     make -j $(expr $(nproc) \* 2) && \
     cd /tmp/Euler && \
-    python tools/pip/setup.py install && \
-    rm -rf /tmp/Euler /tmp/build
+    python tools/pip/setup.py install
+
+RUN mkdir /root/quick-begin && cd /root/quick-begin && \
+    curl -k -O https://raw.githubusercontent.com/alibaba/euler/master/examples/ppi_data.py && \
+	pip install networkx==1.11 scikit-learn==0.19.0 scipy==1.2.0 && \
+	python ppi_data.py
