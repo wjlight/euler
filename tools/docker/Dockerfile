@@ -19,10 +19,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$JAVA_HOME/lib/server
 
-RUN wget https://mirrors.aliyun.com/apache/hadoop/common/hadoop-2.9.2/hadoop-2.9.2.tar.gz && \
-    tar xf hadoop-2.9.2.tar.gz -C /usr/local && \
-    rm -rf hadoop-2.9.2.tar.gz
-ENV HADOOP_HOME /usr/local/hadoop-2.9.2
+RUN wget https://mirrors.aliyun.com/apache/hadoop/common/hadoop-3.1.3/hadoop-3.1.3.tar.gz && \
+    tar -zxf hadoop-3.1.3.tar.gz -C /usr/local  && \
+    cd /usr/local/  && \
+    mv ./hadoop-3.1.3/ ./hadoop
+ENV HADOOP_HOME /usr/local/hadoop
 ENV LIBRARY_PATH $LIBRARY_PATH:$HADOOP_HOME/lib/native
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$HADOOP_HOME/lib/native
 ENV PATH $PATH:$HADOOP_HOME/bin
@@ -34,6 +35,29 @@ RUN pip --no-cache-dir install numpy==1.16.4 tensorflow==1.12.3 setuptools
 
 RUN apt-get install unzip git curl vim -y
 #  && cd /usr/local/lib/python2.7/dist-packages/tensorflow && rm -rf libtensorflow_framework.so && ln -s libtensorflow_framework.so.1 libtensorflow_framework.so
+
+RUN mkdir /root/quick-begin && cd /root/quick-begin && \
+    curl -k -O https://raw.githubusercontent.com/alibaba/euler/master/examples/ppi_data.py && \
+	pip install networkx==1.11 scikit-learn==0.19.0 scipy==1.2.0
+
+RUN apt-get install -y zookeeper openjdk-11-jdk openssh-server
+RUN ssh-keygen -f /root/.ssh/id_rsa -t rsa -N '' && cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+RUN apt-get install -y openjdk-8-jdk
+RUN cd /root/ && wget https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-3.5.5/apache-zookeeper-3.5.5-bin.tar.gz && \
+    tar -zxf apache-zookeeper-3.5.5-bin.tar.gz
+RUN cd /root/ && cp -rf apache-zookeeper-3.5.5-bin /root/server1 && \
+	cp -rf apache-zookeeper-3.5.5-bin /root/server2 && \
+	cp -rf apache-zookeeper-3.5.5-bin /root/server3 && \
+	mkdir /root/server1/data && echo "1" > /root/server1/data/myid && \
+	mkdir /root/server2/data && echo "2" > /root/server2/data/myid && \
+	mkdir /root/server3/data && echo "3" > /root/server3/data/myid
+COPY ./tools/docker/server1/zoo.cfg /root/server1/conf
+COPY ./tools/docker/server2/zoo.cfg /root/server2/conf
+COPY ./tools/docker/server3/zoo.cfg /root/server3/conf
+
+RUN echo "export PATH=$PATH:/root/server1/bin/" >> /root/.bashrc
+RUN echo "service ssh start" >> /root/.bashrc
+
 
 COPY . /tmp/Euler
 RUN mv -f /tmp/Euler/gflags /tmp && cd /tmp/gflags && mv -f build2 build && cd build && \
@@ -55,8 +79,16 @@ RUN cd /tmp/Euler && \
     make -j $(expr $(nproc) \* 2) && \
     cd /tmp/Euler && \
     python tools/pip/setup.py install
+	
+RUN cd /root/quick-begin && python ppi_data.py
 
-RUN mkdir /root/quick-begin && cd /root/quick-begin && \
-    curl -k -O https://raw.githubusercontent.com/alibaba/euler/master/examples/ppi_data.py && \
-	pip install networkx==1.11 scikit-learn==0.19.0 scipy==1.2.0 && \
-	python ppi_data.py
+COPY ./tools/docker/data /tmp/data
+COPY ./tools/docker/dist_tf_euler.sh /tmp/
+COPY ./tools/docker/dist_start.sh /tmp/
+COPY ./tools/docker/hdf-init.sh /tmp/
+COPY ./tools/docker/hdfs-conf/capacity-scheduler.xml $HADOOP_HOME/etc/hadoop/
+COPY ./tools/docker/hdfs-conf/core-site.xml $HADOOP_HOME/etc/hadoop/
+COPY ./tools/docker/hdfs-conf/hadoop-env.sh $HADOOP_HOME/etc/hadoop/
+COPY ./tools/docker/hdfs-conf/hdfs-site.xml $HADOOP_HOME/etc/hadoop/
+COPY ./tools/docker/hdfs-conf/mapred-site.xml $HADOOP_HOME/etc/hadoop/
+COPY ./tools/docker/hdfs-conf/yarn-site.xml $HADOOP_HOME/etc/hadoop/
