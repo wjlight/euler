@@ -92,3 +92,5 @@ COPY ./tools/docker/hdfs-conf/hadoop-env.sh $HADOOP_HOME/etc/hadoop/
 COPY ./tools/docker/hdfs-conf/hdfs-site.xml $HADOOP_HOME/etc/hadoop/
 COPY ./tools/docker/hdfs-conf/mapred-site.xml $HADOOP_HOME/etc/hadoop/
 COPY ./tools/docker/hdfs-conf/yarn-site.xml $HADOOP_HOME/etc/hadoop/
+COPY ./tools/docker/deepwalk-demo.py /root/quick-begin
+COPY ./tools/docker/graphsage-demo.py /root/quick-begin
