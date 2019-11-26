@@ -40,8 +40,7 @@ RUN mkdir /root/quick-begin && cd /root/quick-begin && \
     curl -k -O https://raw.githubusercontent.com/alibaba/euler/master/examples/ppi_data.py && \
 	pip install networkx==1.11 scikit-learn==0.19.0 scipy==1.2.0
 
-RUN apt-get install -y zookeeper openjdk-11-jdk openssh-server
-RUN ssh-keygen -f /root/.ssh/id_rsa -t rsa -N '' && cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+RUN apt-get install -y zookeeper openjdk-11-jdk
 RUN apt-get install -y openjdk-8-jdk
 RUN cd /root/ && wget https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-3.5.5/apache-zookeeper-3.5.5-bin.tar.gz && \
     tar -zxf apache-zookeeper-3.5.5-bin.tar.gz
@@ -56,8 +55,9 @@ COPY ./tools/docker/server2/zoo.cfg /root/server2/conf
 COPY ./tools/docker/server3/zoo.cfg /root/server3/conf
 
 RUN echo "export PATH=$PATH:/root/server1/bin/" >> /root/.bashrc
-RUN echo "service ssh start" >> /root/.bashrc
+RUN echo "service ssh restart" >> /root/.bashrc
 
+RUN apt-get install -y openssh-server && ssh-keygen -f /root/.ssh/id_rsa -t rsa -N '' && cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
 COPY . /tmp/Euler
 RUN mv -f /tmp/Euler/gflags /tmp && cd /tmp/gflags && mv -f build2 build && cd build && \
@@ -96,7 +96,7 @@ COPY ./tools/docker/deepwalk-demo.py /root/quick-begin
 COPY ./tools/docker/graphsage-demo.py /root/quick-begin
 
 RUN echo 'root:123456' |chpasswd  && \
-	echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && \
+	sed -ri 's/^#?PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
 	sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config && \
 	echo 'export $(cat /proc/1/environ |tr "\\0" "\\n" | xargs)'　>> /etc/profile
 
