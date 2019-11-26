@@ -97,6 +97,7 @@ COPY ./tools/docker/graphsage-demo.py /root/quick-begin
 
 RUN echo 'root:123456' |chpasswd  && \
 	sed -ri 's/^#?PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-	sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config
+	sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config && \
+	echo 'export $(cat /proc/1/environ |tr "\\0" "\\n" | xargs)'　>> /etc/profile
 
 EXPOSE 22
