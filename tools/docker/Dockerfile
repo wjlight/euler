@@ -95,6 +95,8 @@ COPY ./tools/docker/hdfs-conf/yarn-site.xml $HADOOP_HOME/etc/hadoop/
 COPY ./tools/docker/deepwalk-demo.py /root/quick-begin
 COPY ./tools/docker/graphsage-demo.py /root/quick-begin
 
+RUN apt-get install -y openssh-server 
+
 RUN echo 'root:123456' |chpasswd  && \
 	sed -ri 's/^#?PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
 	sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config && \
