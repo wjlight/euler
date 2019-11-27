@@ -40,8 +40,8 @@ RUN mkdir /root/quick-begin && cd /root/quick-begin && \
     curl -k -O https://raw.githubusercontent.com/alibaba/euler/master/examples/ppi_data.py && \
 	pip install networkx==1.11 scikit-learn==0.19.0 scipy==1.2.0
 
-RUN apt-get install -y zookeeper openjdk-11-jdk
-RUN apt-get install -y openjdk-8-jdk
+RUN apt-get update && apt-get install -y zookeeper openjdk-8-jdk
+
 RUN cd /root/ && wget https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-3.5.5/apache-zookeeper-3.5.5-bin.tar.gz && \
     tar -zxf apache-zookeeper-3.5.5-bin.tar.gz
 RUN cd /root/ && cp -rf apache-zookeeper-3.5.5-bin /root/server1 && \
